@@ -1,1 +1,734 @@
-# grocery-list
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grocery List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #f7f4ef;
+    --surface: #ffffff;
+    --surface-2: #f1ede5;
+    --text: #251f1a;
+    --muted: #8a8078;
+    --border: #e7e1d8;
+    --accent: #6b2737;
+    --accent-soft: #f3e3e6;
+    --shadow-sm: 0 1px 2px rgba(37, 31, 26, .04), 0 1px 1px rgba(37, 31, 26, .03);
+    --shadow-md: 0 8px 24px -10px rgba(37, 31, 26, .18);
+    --shadow-lg: 0 20px 48px -16px rgba(37, 31, 26, .28);
+    --radius-sm: 9px;
+    --radius: 14px;
+    --radius-lg: 20px;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+    /* category accents */
+    --produce:   #5b8a52;  --dairy:     #3f7ca8;
+    --meat:      #b3493f;  --pantry:    #b8792e;
+    --frozen:    #5c5aa6;  --bakery:    #92592f;
+    --beverage:  #2f8a7e;  --household: #8a4f96;
+    --other:     #786f66;
+  }
+
+  html.dark {
+    --bg: #15120f;
+    --surface: #1f1b17;
+    --surface-2: #29241f;
+    --text: #efe9e1;
+    --muted: #9c9189;
+    --border: #34302a;
+    --accent: #e0a3ad;
+    --accent-soft: #2e1d21;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
+    --shadow-md: 0 8px 24px -10px rgba(0, 0, 0, .55);
+    --shadow-lg: 0 24px 56px -18px rgba(0, 0, 0, .65);
+
+    --produce:   #7fb274;  --dairy:     #6fa8d6;
+    --meat:      #d97c70;  --pantry:    #d99c52;
+    --frozen:    #8e8bd1;  --bakery:    #c08858;
+    --beverage:  #57b5a8;  --household: #b87bc4;
+    --other:     #a39a90;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 16px 100px;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  .container { max-width: 640px; margin: 0 auto; }
+
+  /* ── Header ─────────────────────────────────── */
+  header {
+    position: relative;
+    padding: 36px 4px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand .mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; flex-shrink: 0; box-shadow: var(--shadow-sm);
+  }
+  header h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.85rem;
+    letter-spacing: -.01em;
+  }
+
+  #themeToggle {
+    position: absolute; right: 4px; top: 36px;
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color .15s, transform .15s;
+    box-shadow: var(--shadow-sm);
+  }
+  #themeToggle:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  .stats {
+    display: flex; gap: 22px; font-size: .82rem; color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .stats span strong { color: var(--text); font-weight: 600; }
+
+  /* ── Add bar ─────────────────────────────────── */
+  .add-bar {
+    display: flex; gap: 8px; margin-bottom: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px;
+    box-shadow: var(--shadow-sm);
+  }
+  .add-bar input, .add-bar select {
+    border: none; font-size: .95rem; font-family: var(--font-body);
+    background: transparent; color: var(--text); outline: none;
+  }
+  .add-bar input[name="item"] {
+    flex: 1; min-width: 100px; padding: 10px 12px;
+  }
+  .add-bar input[name="item"]::placeholder { color: var(--muted); }
+  .add-bar select {
+    padding: 10px 8px; max-width: 130px; cursor: pointer;
+    border-left: 1px solid var(--border); border-radius: 0;
+  }
+  .add-bar button {
+    padding: 10px 18px; border: none; border-radius: var(--radius-sm);
+    font-size: .9rem; font-weight: 600; cursor: pointer;
+    background: var(--accent); color: #fff;
+    font-family: var(--font-body);
+    transition: filter .15s, transform .1s;
+    flex-shrink: 0;
+  }
+  .add-bar button:hover { filter: brightness(1.1); }
+  .add-bar button:active { transform: scale(.97); }
+
+  /* ── Category pills ─────────────────────────── */
+  .cats {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;
+    align-items: center;
+  }
+  .pill {
+    padding: 6px 13px; border-radius: 999px; font-size: .8rem;
+    font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    transition: all .15s; display: flex; align-items: center; gap: 6px;
+    background: var(--surface); color: var(--muted);
+  }
+  .pill:hover { border-color: var(--accent); color: var(--text); }
+  .pill.active {
+    background: var(--text); border-color: var(--text); color: var(--bg);
+  }
+  .pill small { opacity: .7; font-variant-numeric: tabular-nums; }
+
+  /* ── Sort control ───────────────────────────── */
+  .sort-row {
+    display: flex; justify-content: flex-end; margin-bottom: 18px;
+  }
+  .sort-select {
+    border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+    font-size: .78rem; font-family: var(--font-body); cursor: pointer;
+    outline: none; padding: 6px 10px; border-radius: 8px;
+    transition: border-color .15s, color .15s;
+  }
+  .sort-select:hover, .sort-select:focus { border-color: var(--accent); color: var(--text); }
+
+  /* ── List groups ─────────────────────────────── */
+  .list { display: flex; flex-direction: column; gap: 22px; }
+  .group-section { display: flex; flex-direction: column; gap: 8px; }
+  .group-label {
+    font-size: .72rem; text-transform: uppercase; letter-spacing: .09em;
+    font-weight: 600; padding-left: 2px; color: var(--muted);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .group-label .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .group-label .count { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* ── Item card ──────────────────────────────── */
+  .items { display: flex; flex-direction: column; gap: 6px; }
+
+  .card {
+    position: relative;
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px 11px 16px;
+    background: var(--surface);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    animation: slideIn .22s ease-out;
+    transition: opacity .25s, border-color .15s;
+  }
+  .card::before {
+    content: ''; position: absolute; left: 0; top: 8px; bottom: 8px;
+    width: 3px; border-radius: 3px; background: var(--cat-color, var(--other));
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .card.checked { opacity: .5; }
+  .card.checked .name { text-decoration: line-through; text-decoration-color: var(--muted); }
+  .card:hover { border-color: #d8d0c4; }
+  html.dark .card:hover { border-color: #45403a; }
+  .card:hover .del-btn { opacity: 1; }
+
+  .check {
+    width: 21px; height: 21px; border-radius: 7px;
+    border: 1.5px solid var(--border); flex-shrink: 0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface); transition: all .15s; appearance: none;
+    -webkit-appearance: none;
+  }
+  .check:hover { border-color: var(--accent); }
+  .check:checked {
+    background: var(--accent); border-color: var(--accent);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 8.5l3 3 7-7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: center; background-size: 13px;
+  }
+
+  .name {
+    flex: 1; font-size: .94rem; border: none; background: transparent;
+    color: inherit; outline: none; padding: 3px 5px; border-radius: 6px;
+    min-width: 0; font-family: var(--font-body);
+  }
+  .name:focus { background: var(--surface-2); }
+
+  .qty-row { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+  .qty-btn {
+    width: 24px; height: 24px; border-radius: 50%; border: none;
+    background: transparent; font-size: 1rem; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; color: var(--muted); transition: .15s;
+  }
+  .qty-btn:hover { background: var(--surface-2); color: var(--text); }
+  .qty-val {
+    min-width: 20px; text-align: center; font-weight: 600; font-size: .85rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .unit-select {
+    border: none; background: transparent; color: var(--muted);
+    font-size: .76rem; font-family: var(--font-body); cursor: pointer;
+    outline: none; padding: 2px 1px; margin-left: 1px; max-width: 52px;
+  }
+  .unit-select:hover, .unit-select:focus { color: var(--text); }
+
+  .cat-select {
+    border: 1px solid var(--border); background: var(--surface-2); color: var(--muted);
+    font-size: .73rem; font-family: var(--font-body); cursor: pointer;
+    outline: none; padding: 4px 6px; border-radius: 7px; flex-shrink: 0;
+    max-width: 84px;
+  }
+  .cat-select:hover, .cat-select:focus { border-color: var(--accent); color: var(--text); }
+
+  .price-input {
+    width: 56px; padding: 5px 4px; border: 1px solid var(--border); border-radius: 8px;
+    text-align: right; font-size: .82rem; background: var(--surface-2); color: var(--text);
+    outline: none; flex-shrink: 0; font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
+  }
+  .price-input:focus { border-color: var(--accent); background: var(--surface); }
+
+  .del-btn {
+    width: 26px; height: 26px; border: none; background: transparent;
+    color: var(--muted); cursor: pointer; border-radius: 7px;
+    opacity: 0; transition: .15s; flex-shrink: 0; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .del-btn:hover { background: var(--accent-soft); color: var(--accent); }
+  .del-btn svg { width: 15px; height: 15px; }
+
+  /* ── Footer actions ─────────────────────────── */
+  .actions {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 10;
+    background: var(--surface); padding: 6px; border-radius: 999px;
+    border: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  }
+  .actions button {
+    padding: 9px 18px; border: none; border-radius: 999px; font-size: .82rem;
+    font-weight: 600; cursor: pointer; font-family: var(--font-body);
+    transition: background .15s, color .15s;
+    background: transparent; color: var(--muted);
+  }
+  .btn-clear:hover { background: var(--surface-2); color: var(--text); }
+  .btn-reset:hover { background: var(--accent-soft); color: var(--accent); }
+
+  /* ── Empty state ───────────────────────────── */
+  .empty {
+    text-align: center; padding: 64px 16px; color: var(--muted); font-size: .92rem;
+    border: 1px dashed var(--border); border-radius: var(--radius-lg);
+  }
+  .empty .icon { font-size: 2rem; margin-bottom: 10px; opacity: .7; }
+  .empty .sub { font-size: .85rem; margin-top: 4px; }
+
+  /* ── Modal ─────────────────────────────────── */
+  .modal {
+    position: fixed; inset: 0; background: rgba(20, 16, 13, .45);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 20; padding: 20px; backdrop-filter: blur(2px);
+  }
+  .modal.hidden { display: none; }
+  .modal-content {
+    background: var(--surface); color: var(--text); padding: 26px;
+    border-radius: var(--radius-lg); text-align: center; max-width: 320px;
+    box-shadow: var(--shadow-lg); border: 1px solid var(--border);
+  }
+  .modal-content p { font-size: .95rem; margin-bottom: 18px; line-height: 1.5; }
+  .modal-content .row { display: flex; gap: 8px; justify-content: center; }
+  .modal-content button {
+    font-weight: 600; font-family: var(--font-body); font-size: .85rem;
+    padding: 9px 20px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    cursor: pointer; background: var(--surface); color: var(--text);
+    transition: background .15s, border-color .15s;
+  }
+  #confirmYes { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #confirmYes:hover { filter: brightness(1.1); }
+  #confirmNo:hover { background: var(--surface-2); }
+
+  /* ── Undo toast ────────────────────────────── */
+  .toast {
+    position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%) translateY(0);
+    background: var(--text); color: var(--bg);
+    padding: 11px 12px 11px 18px; border-radius: 999px;
+    display: flex; align-items: center; gap: 14px;
+    font-size: .85rem; box-shadow: var(--shadow-lg);
+    z-index: 30; opacity: 1; transition: opacity .2s, transform .2s;
+  }
+  .toast.hidden { opacity: 0; transform: translateX(-50%) translateY(8px); pointer-events: none; }
+  .toast .undo-btn {
+    border: none; background: var(--accent); color: #fff;
+    font-weight: 600; font-family: var(--font-body); font-size: .82rem;
+    padding: 7px 16px; border-radius: 999px; cursor: pointer;
+    transition: filter .15s;
+  }
+  .toast .undo-btn:hover { filter: brightness(1.15); }
+
+  /* ── Responsive ─────────────────────────────── */
+  @media (max-width: 480px) {
+    header { padding: 26px 4px 20px; }
+    header h1 { font-size: 1.55rem; }
+    #themeToggle { top: 26px; }
+    .add-bar { flex-wrap: wrap; }
+    .add-bar select { max-width: none; flex: 1; border-left: none; border-top: 1px solid var(--border); }
+    .add-bar input[name="item"] { flex-basis: 100%; }
+    .add-bar button { flex: 1; }
+    .sort-row { justify-content: stretch; }
+    .sort-select { flex: 1; }
+    .card { padding: 10px 12px 10px 15px; flex-wrap: wrap; }
+    .name { flex-basis: 100%; order: -1; }
+    .cat-select { max-width: none; flex: 1; order: 3; }
+    .price-input { width: auto; flex: 1; order: 4; }
+    .actions { max-width: calc(100% - 32px); }
+    .actions button { padding: 9px 14px; font-size: .78rem; }
+    .toast { max-width: calc(100% - 32px); }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <button id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+    <div class="brand">
+      <span class="mark">🛒</span>
+      <h1>Grocery List</h1>
+    </div>
+    <div class="stats">
+      <span><strong id="totalItems">0</strong> items</span>
+      <span><strong id="checkedItems">0</strong> checked</span>
+      <span><strong id="estTotal">$0.00</strong> est.</span>
+    </div>
+  </header>
+
+  <!-- Add bar -->
+  <div class="add-bar">
+    <input type="text" name="item" placeholder="Add an item…" autofocus>
+    <select name="cat">
+      <option value="produce">🥬 Produce</option>
+      <option value="dairy">🧀 Dairy</option>
+      <option value="meat">🥩 Meat</option>
+      <option value="pantry">🥫 Pantry</option>
+      <option value="frozen">❄️ Frozen</option>
+      <option value="bakery">🍞 Bakery</option>
+      <option value="beverage">🥤 Beverage</option>
+      <option value="household">🧹 Household</option>
+      <option value="other">📦 Other</option>
+    </select>
+    <button id="addBtn">Add</button>
+  </div>
+
+  <!-- Category pills -->
+  <div class="cats" id="pillBar"></div>
+
+  <!-- Sort control -->
+  <div class="sort-row">
+    <select class="sort-select" id="sortSelect">
+      <option value="added">Sort: Recently added</option>
+      <option value="added-old">Sort: Oldest first</option>
+      <option value="az">Sort: A → Z</option>
+      <option value="za">Sort: Z → A</option>
+    </select>
+  </div>
+
+  <!-- List -->
+  <div class="list" id="list"></div>
+</div>
+
+<!-- Fixed footer actions -->
+<div class="actions">
+  <button class="btn-clear" id="clearCheckedBtn">Clear checked</button>
+  <button class="btn-reset" id="resetBtn">Reset all</button>
+</div>
+
+<!-- Undo toast -->
+<div class="toast hidden" id="undoToast">
+  <span id="undoMessage">Item removed</span>
+  <button class="undo-btn" id="undoBtn">Undo</button>
+</div>
+
+<div id="confirmModal" class="modal hidden">
+  <div class="modal-content">
+    <p id="confirmMessage"></p>
+    <div class="row">
+      <button id="confirmNo">Cancel</button>
+      <button id="confirmYes">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Theme (applied before first paint to avoid flash) ───── */
+(function () {
+  const saved = localStorage.getItem('theme') || 'light';
+  if (saved === 'dark') document.documentElement.classList.add('dark');
+})();
+
+/* ── Data ───────────────────────────────────── */
+const CATEGORIES = [
+  { key: 'produce',   label: 'Produce',   emoji: '🥬' },
+  { key: 'dairy',     label: 'Dairy',     emoji: '🧀' },
+  { key: 'meat',      label: 'Meat',      emoji: '🥩' },
+  { key: 'pantry',    label: 'Pantry',    emoji: '🥫' },
+  { key: 'frozen',    label: 'Frozen',    emoji: '❄️' },
+  { key: 'bakery',    label: 'Bakery',    emoji: '🍞' },
+  { key: 'beverage',  label: 'Beverage',  emoji: '🥤' },
+  { key: 'household', label: 'Household', emoji: '🧹' },
+  { key: 'other',     label: 'Other',     emoji: '📦' },
+];
+
+// Empty string = plain count ("3 ×"), used as the default unit.
+const UNITS = ['', 'pcs', 'lb', 'oz', 'kg', 'g', 'gal', 'qt', 'l', 'ml', 'pack', 'can', 'box', 'bag'];
+const UNIT_LABELS = { '': '×', pcs: 'pcs', lb: 'lb', oz: 'oz', kg: 'kg', g: 'g', gal: 'gal', qt: 'qt', l: 'l', ml: 'ml', pack: 'pack', can: 'can', box: 'box', bag: 'bag' };
+
+const KEYWORDS = {
+  produce:   ['lettuce','tomato','tomatoes','onion','onions','garlic','pepper','peppers','bell pepper','carrot','carrots','banana','bananas','apple','apples','berry','berries','avocado','broccoli','spinach','kale','celery','zucchini','mushroom','mushrooms','corn','corn on the cob','lemon','lime','orange','oranges','cucumber','cabbage','potato','potatoes','fresh herbs','basil','cilantro','dill','mint','ginger','scallion','scallions','asparagus','eggplant','papaya','mango','pineapple','watermelon','strawberry','strawberries','blueberry','blueberries','raspberry','blackberry','grape','grapes','melon'],
+  dairy:     ['milk','cheese','yogurt','butter','heavy cream','whipping cream','sour cream','eggs','egg','ricotta','mozzarella','parmesan','cheddar','feta','cream cheese','half & half','half and half'],
+  meat:      ['chicken','beef','corned beef','ground beef','roast beef','beef jerky','pork','pork chop','turkey','sausage','bacon','ham','deli ham','steak','shrimp','fish','salmon','tuna steak','lamb','meatball','meatballs','hot dog','hot dogs','deli meat','rotisserie chicken'],
+  pantry:    ['flour','sugar','salt','black pepper','peppercorn','rice','pasta','noodle','noodles','bread crumbs','breadcrumbs','cornbread','cooking oil','olive oil','vegetable oil','vinegar','ketchup','mustard','mayo','mayonnaise','soy sauce','honey','maple syrup','jam','jelly','cereal','oatmeal','rolled oats','canned soup','canned beans','beans','canned tuna','tuna can','pasta sauce','tomato sauce','hot sauce','spice','spices','cinnamon','vanilla extract','baking soda','baking powder','cornstarch','wheat flour','flour tortillas','peanut butter','almond butter','crackers','popcorn','chips','pretzels','granola bar','granola bars'],
+  frozen:    ['frozen','frozen pizza','ice cream','popsicle','popsicles','frozen vegetables','frozen veggies','frozen fruit','frozen waffles','frozen dinner','frozen meal','frozen fries'],
+  bakery:    ['bread','sandwich bread','bagel','bagels','baguette','croissant','croissants','tortilla','tortillas','dinner rolls','roll','rolls','muffin','muffins','donut','donuts','cookie','cookies','cake','pastry','pastries','pie crust','hamburger buns','hot dog buns','waffles','waffle'],
+  beverage:  ['juice','orange juice','coffee','coffee beans','tea','tea bags','soda','beer','wine','sparkling water','still water','bottled water','lemonade','smoothie','almond milk','oat milk','soy milk','coconut water','sparkling'],
+  household: ['soap','hand soap','dish soap','laundry detergent','detergent','paper towels','paper towel','bath towel','towel','tissue','tissues','trash bags','trash bag','wipes','baby wipes','sponge','sponges','aluminum foil','foil','plastic wrap','cling wrap','batteries','tape','pens','pen','bleach','floor cleaner','all-purpose cleaner','shampoo','conditioner','deodorant','toothpaste','toothbrush','sanitary pads','diapers','diaper'],
+};
+
+// Flatten into a single list of {key, phrase} pairs, longest phrase first.
+// Longer/more specific phrases (e.g. "corned beef", "ground beef") are checked
+// before shorter generic ones (e.g. "beef", "corn"), and matches must land on
+// whole-word boundaries so "corn" doesn't fire inside "corned beef".
+const KEYWORD_ENTRIES = Object.entries(KEYWORDS)
+  .flatMap(([key, words]) => words.map(phrase => ({ key, phrase })))
+  .sort((a, b) => b.phrase.length - a.phrase.length);
+
+function escapeRegExp(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+function detectCategory(text) {
+  const lower = text.toLowerCase().trim();
+  for (const { key, phrase } of KEYWORD_ENTRIES) {
+    const pattern = new RegExp('\\b' + escapeRegExp(phrase) + '\\b');
+    if (pattern.test(lower)) return key;
+  }
+  return 'other';
+}
+
+/* ── State ──────────────────────────────────── */
+let items = JSON.parse(localStorage.getItem('grocery-items') || '[]');
+// Migrate older saved items that don't have a unit field yet.
+items.forEach(i => { if (i.unit === undefined) i.unit = ''; });
+
+let activeFilter = 'all';
+let sortMode = localStorage.getItem('grocery-sort') || 'added';
+
+let lastDeleted = null;       // { item, index } of the most recently removed item, for undo
+let undoTimer = null;
+
+function save() { localStorage.setItem('grocery-items', JSON.stringify(items)); }
+
+/* ── Render helpers ─────────────────────────── */
+const $ = id => document.getElementById(id);
+
+function catInfo(key) { return CATEGORIES.find(c => c.key === key) || CATEGORIES[CATEGORIES.length - 1]; }
+
+function updateStats() {
+  $('totalItems').textContent = items.length;
+  $('checkedItems').textContent = items.filter(i => i.checked).length;
+  const total = items.reduce((s, i) => s + (parseFloat(i.price) || 0) * (i.qty || 1), 0);
+  $('estTotal').textContent = '$' + total.toFixed(2);
+}
+
+function renderPills() {
+  const bar = $('pillBar');
+  const cats = [{ key: 'all', label: 'All', emoji: '✨' }].concat(CATEGORIES);
+  bar.innerHTML = cats.map(c => {
+    const active = activeFilter === c.key;
+    const count = c.key === 'all' ? items.length : items.filter(i => i.cat === c.key).length;
+    return `<div class="pill${active ? ' active' : ''}" data-cat="${c.key}">${c.emoji} ${c.label} <small>${count}</small></div>`;
+  }).join('');
+
+  bar.querySelectorAll('.pill').forEach(el => {
+    el.addEventListener('click', () => {
+      activeFilter = el.dataset.cat;
+      renderPills();
+      renderList();
+    });
+  });
+}
+
+function renderItem(item) {
+  const unitOptions = UNITS.map(u =>
+    `<option value="${u}" ${item.unit === u ? 'selected' : ''}>${UNIT_LABELS[u]}</option>`
+  ).join('');
+  const catOptions = CATEGORIES.map(c =>
+    `<option value="${c.key}" ${item.cat === c.key ? 'selected' : ''}>${c.emoji} ${c.label}</option>`
+  ).join('');
+
+  return `
+    <div class="card${item.checked ? ' checked' : ''}" data-id="${item.id}" style="--cat-color:var(--${item.cat})">
+      <input class="check" type="checkbox" ${item.checked ? 'checked' : ''}>
+      <input class="name" value="${item.name.replace(/"/g, '&quot;')}" spellcheck="false">
+      <div class="qty-row">
+        <button class="qty-btn qty-down" aria-label="Decrease quantity">−</button>
+        <span class="qty-val">${item.qty}</span>
+        <button class="qty-btn qty-up" aria-label="Increase quantity">+</button>
+        <select class="unit-select" aria-label="Unit">${unitOptions}</select>
+      </div>
+      <select class="cat-select" aria-label="Category">${catOptions}</select>
+      <input class="price-input" type="number" step="0.01" min="0" value="${item.price || ''}" placeholder="$0">
+      <button class="del-btn del-btn-el" aria-label="Remove item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>`;
+}
+
+function sortGroup(groupItems) {
+  // .map/.sort keeps a stable index so "Recently added" / "Oldest first" reflect
+  // true insertion order even though `items` itself is never reordered.
+  const withIndex = groupItems.map((item, i) => ({ item, i }));
+  switch (sortMode) {
+    case 'az':
+      withIndex.sort((a, b) => a.item.name.localeCompare(b.item.name) || a.i - b.i);
+      break;
+    case 'za':
+      withIndex.sort((a, b) => b.item.name.localeCompare(a.item.name) || a.i - b.i);
+      break;
+    case 'added-old':
+      withIndex.sort((a, b) => a.i - b.i);
+      break;
+    case 'added':
+    default:
+      withIndex.sort((a, b) => b.i - a.i);
+      break;
+  }
+  return withIndex.map(w => w.item);
+}
+
+function renderList() {
+  const list = $('list');
+  let filtered = activeFilter === 'all' ? items : items.filter(i => i.cat === activeFilter);
+
+  if (!filtered.length) {
+    list.innerHTML = items.length
+      ? `<div class="empty"><div class="icon">🔍</div>Nothing in this category.<div class="sub">Try a different filter, or add something new.</div></div>`
+      : `<div class="empty"><div class="icon">🛒</div>Your list is empty.<div class="sub">Add your first item above.</div></div>`;
+    return;
+  }
+
+  const groups = {};
+  filtered.forEach(i => { (groups[i.cat] ||= []).push(i); });
+
+  let html = '';
+  const order = CATEGORIES.map(c => c.key);
+  Object.keys(groups).sort((a, b) => order.indexOf(a) - order.indexOf(b)).forEach(cat => {
+    const info = catInfo(cat);
+    const sorted = sortGroup(groups[cat]);
+    html += `<div class="group-section">
+      <div class="group-label">
+        <span class="dot" style="background:var(--${cat})"></span>${info.emoji} ${info.label}
+        <span class="count">${sorted.length}</span>
+      </div>
+      <div class="items">${sorted.map(renderItem).join('')}</div>
+    </div>`;
+  });
+
+  list.innerHTML = html;
+}
+
+/* ── Events ─────────────────────────────────── */
+function addItem(name) {
+  if (!name.trim()) return;
+  items.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), name: name.trim(), cat: detectCategory(name), qty: 1, unit: '', price: 0, checked: false });
+  save(); renderPills(); renderList(); updateStats();
+}
+
+$('sortSelect').value = sortMode;
+$('sortSelect').addEventListener('change', e => {
+  sortMode = e.target.value;
+  localStorage.setItem('grocery-sort', sortMode);
+  renderList();
+});
+
+$('addBtn').addEventListener('click', () => {
+  const input = document.querySelector('[name="item"]');
+  addItem(input.value);
+  input.value = '';
+  input.focus();
+});
+
+document.querySelector('[name="item"]').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); $('addBtn').click(); }
+});
+
+$('list').addEventListener('change', e => {
+  const card = e.target.closest('.card'); if (!card) return;
+  const id = card.dataset.id, item = items.find(i => i.id === id); if (!item) return;
+
+  if (e.target.classList.contains('check')) { item.checked = e.target.checked; card.classList.toggle('checked', item.checked); save(); renderPills(); updateStats(); return; }
+  if (e.target.classList.contains('name')) { item.name = e.target.value; save(); renderPills(); updateStats(); return; }
+  if (e.target.classList.contains('price-input')) { item.price = parseFloat(e.target.value) || 0; save(); renderPills(); updateStats(); return; }
+  if (e.target.classList.contains('unit-select')) { item.unit = e.target.value; save(); return; }
+  if (e.target.classList.contains('cat-select')) {
+    // Category changed manually — item moves to a different group, so the list needs a full re-render.
+    item.cat = e.target.value;
+    save(); renderPills(); renderList(); updateStats();
+    return;
+  }
+});
+
+$('list').addEventListener('click', e => {
+  const card = e.target.closest('.card'); if (!card) return;
+  const id = card.dataset.id, item = items.find(i => i.id === id); if (!item) return;
+
+  if (e.target.closest('.del-btn-el')) {
+    removeItem(id);
+    return;
+  }
+  if (e.target.classList.contains('qty-up')) { item.qty++; card.querySelector('.qty-val').textContent = item.qty; save(); updateStats(); }
+  if (e.target.classList.contains('qty-down') && item.qty > 1) { item.qty--; card.querySelector('.qty-val').textContent = item.qty; save(); updateStats(); }
+});
+
+/* ── Delete + undo ──────────────────────────── */
+function removeItem(id) {
+  const index = items.findIndex(i => i.id === id);
+  if (index === -1) return;
+  const [removed] = items.splice(index, 1);
+  lastDeleted = { item: removed, index };
+  save(); renderPills(); renderList(); updateStats();
+  showUndoToast(`Removed "${removed.name}"`);
+}
+
+function showUndoToast(message) {
+  $('undoMessage').textContent = message;
+  $('undoToast').classList.remove('hidden');
+  clearTimeout(undoTimer);
+  undoTimer = setTimeout(hideUndoToast, 6000);
+}
+
+function hideUndoToast() {
+  $('undoToast').classList.add('hidden');
+  clearTimeout(undoTimer);
+  lastDeleted = null;
+}
+
+$('undoBtn').addEventListener('click', () => {
+  if (!lastDeleted) return;
+  const { item, index } = lastDeleted;
+  const insertAt = Math.min(index, items.length);
+  items.splice(insertAt, 0, item);
+  save(); renderPills(); renderList(); updateStats();
+  hideUndoToast();
+});
+
+let pendingAction = null;
+function showConfirm(message) {
+  $('confirmMessage').textContent = message;
+  $('confirmModal').classList.remove('hidden');
+}
+function hideConfirm() { $('confirmModal').classList.add('hidden'); }
+
+$('clearCheckedBtn').addEventListener('click', () => {
+  pendingAction = 'clear';
+  showConfirm('Clear all checked items?');
+});
+
+$('resetBtn').addEventListener('click', () => {
+  pendingAction = 'reset';
+  showConfirm('Reset the entire list? This can\'t be undone.');
+});
+
+$('confirmYes').addEventListener('click', () => {
+  if (pendingAction === 'clear') items = items.filter(i => !i.checked);
+  else if (pendingAction === 'reset') items = [];
+  hideUndoToast();
+  save(); renderPills(); renderList(); updateStats();
+  hideConfirm();
+});
+$('confirmNo').addEventListener('click', hideConfirm);
+$('confirmModal').addEventListener('click', e => { if (e.target.id === 'confirmModal') hideConfirm(); });
+
+/* ── Theme toggle ───────────────────────────── */
+$('themeToggle').addEventListener('click', () => {
+  const isDark = document.documentElement.classList.toggle('dark');
+  $('themeToggle').textContent = isDark ? '☀️' : '🌙';
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+});
+$('themeToggle').textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+
+/* ── Init ───────────────────────────────────── */
+renderPills();
+renderList();
+updateStats();
+</script>
+</body>
+</html>
